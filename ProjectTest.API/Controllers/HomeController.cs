@@ -18,7 +18,7 @@ namespace ProjectTest.API.Controllers
         public string Get()
         {
             _logger.LogInformation("Initial Home Get");
-            return "Net Core 5.0 Running ... 1503022-v4.0.1 CI/CD from JENKINS FILE in AKS v5.0.0 AFORO255";
+            return "Net Core 5.0 Running ... 1503022-v4.0.2 CI/CD from JENKINS FILE in AKS v5.0.0 AFORO255";
         }
     }
 }

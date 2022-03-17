@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('SCM') {
+            steps {
+               git branch: 'main', url: 'https://github.com/jalbertxd/netcore50-api-test'
+            }
+        }
+        
+        stage('Build') {
+            steps {
+               bat(script: 'dir', returnStdout: true);
+               bat(script: 'dotnet restore', returnStdout: true);
+               bat(script: 'dotnet build', returnStdout: true);
+               bat(script: 'dotnet test', returnStdout: true);
+            }
+        }
+        
+        stage('Build Docker') {
+            steps {
+               bat(script: 'docker login --username %UsernameDocker% --password %PasswordDocker%', returnStdout: true);
+               bat(script: 'docker build -t jgomezr/servicenet5 .', returnStdout: true);
+               bat(script: 'docker push jgomezr/servicenet5', returnStdout: true);
+            }
+        }
+        
+        stage('Restart Container') {
+            steps {
+               bat(script: 'az login --service-principal -u "fadafe23-9b95-474a-ace5-e498adc47bcb" -p "gtNqAH_KTyM5pjczkGnJMhFsz.iFwgT625" --tenant "c44ae8d7-5745-473f-a2f4-a9d36a35db30"', returnStdout: true);
+               bat(script: 'az account set --subscription "c4aeb91f-ef86-4eab-a3e6-32e7230156d2" ', returnStdout: true);
+               bat(script: 'az container restart --name micro5testservice --resource-group Jenkins', returnStdout: true);
+            }
+        }
+        
+        stage('Deploy in AKS') {
+            steps {
+               bat(script: 'az aks get-credentials --resource-group Jenkins --name aks-jekins & kubectl config get-contexts --kubeconfig=%KUBE_PATH_CONFIG%', returnStdout: true);
+               bat(script: 'kubectl config use-context aks-jekins --kubeconfig=%KUBE_PATH_CONFIG%', returnStdout: true);
+               bat(script: 'kubectl delete --all pods --kubeconfig=%KUBE_PATH_CONFIG%', returnStdout: true);
+               bat(script: 'kubectl apply -f k8s.yml --kubeconfig=%KUBE_PATH_CONFIG%', returnStdout: true);
+            }
+        }
+    }
+}
